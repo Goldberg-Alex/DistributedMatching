@@ -84,9 +84,9 @@ class Agent(AgentBase):
             self._received_new_data = True
 
         count_after = self._count_weighted_edges(self._matching_subgraph)
-        # if count_after != count_before:
-        #     print(f"num messages: {len(messages)}")
-        #     print(f"count before = {count_before}, count after = {count_after}")
+        if count_after != count_before:
+            print(f"num messages: {len(messages)}")
+            print(f"count before = {count_before}, count after = {count_after}")
 
     def get_solution(self) -> MatchingSolution:
         return self._matching

@@ -35,8 +35,8 @@ def main(message_budget) -> bool:
 
             for recipient_idx, message in new_messages.items():
                 if not connectivity_graph.has_edge(agent.agent_idx, recipient_idx):
-                    # print(f"Message sent from: agent {agent.agent_idx} to an invalid recipient: agent {recipient_idx}. "
-                    #       f"Ignoring message.")
+                    print(f"Message sent from: agent {agent.agent_idx} to an invalid recipient: agent {recipient_idx}. "
+                          f"Ignoring message.")
                     continue
 
                 if curr_message_budget <= 0:
@@ -55,7 +55,7 @@ def main(message_budget) -> bool:
                    messages=prev_round_messages.get(agent.agent_idx, []))
 
     if is_solved(agents=agents, matching_graph=matching_graph):
-        # print(f"solved, used messages: {message_budget - curr_message_budget} / {message_budget}.")
+        print(f"solved, used messages: {message_budget - curr_message_budget} / {message_budget}.")
         return True
 
     return False
