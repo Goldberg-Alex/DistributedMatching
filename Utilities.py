@@ -1,11 +1,18 @@
+import copy
 import itertools
 import random
-from typing import List
+from typing import List, Tuple, Set, Any
 
+import matplotlib.pyplot as plt
 import networkx as nx
 
 import Settings
-from AgentBase import AgentBase, MatchingSolution
+from Agent import Agent, MatchingSolution
+
+"""
+a collection of utility methods for working with graphs, 
+you may use these functions freely in the solution
+"""
 
 
 def calculate_agent_matching_value(matching_solution: MatchingSolution, matching_graph) -> int:
@@ -14,7 +21,7 @@ def calculate_agent_matching_value(matching_solution: MatchingSolution, matching
     return score
 
 
-def calc_matching_score(agents: List[AgentBase], matching_graph: nx.Graph) -> float:
+def calc_matching_score(agents: List[Agent], matching_graph: nx.Graph) -> float:
     matching_score_sum = 0.0
 
     for agent in agents:
@@ -23,7 +30,7 @@ def calc_matching_score(agents: List[AgentBase], matching_graph: nx.Graph) -> fl
     return average_matching_score
 
 
-def calculate_average_discrepancy(agents: List[AgentBase]) -> float:
+def calculate_average_discrepancy(agents: List[Agent]) -> float:
     discrepancies_sum = 0.0
     agent_pairs_num = 0
 
@@ -49,6 +56,10 @@ def calculate_discrepancy_score(first_solution: MatchingSolution, second_solutio
     discrepancy = max(len(sorted_first_solution), len(sorted_second_solution)) - len(solutions_intersection)
 
     return discrepancy
+
+
+do_once_full_graph = True
+do_once_subgraph = True
 
 
 def generate_matching_sub_graphs(matching_graph) -> List[nx.Graph]:
@@ -86,6 +97,19 @@ def generate_matching_sub_graphs(matching_graph) -> List[nx.Graph]:
                 validated = False
                 break
 
+    global do_once_subgraph
+    if do_once_subgraph:
+        for sub_graph in sub_graphs:
+            subgraph_copy = copy.deepcopy(sub_graph)
+            if do_once_subgraph:
+                for edge in sub_graph.edges():
+                    edge_weight = sub_graph.get_edge_data(*edge)['weight']
+                    if edge_weight < 1:
+                        subgraph_copy.remove_edge(*edge)
+
+                draw_bipartite_graph(subgraph_copy)
+            do_once_subgraph = False
+
     return sub_graphs
 
 
@@ -97,6 +121,9 @@ def generate_connectivity_graph() -> nx.Graph:
         connectivity_graph = nx.erdos_renyi_graph(n=Settings.NUM_AGENTS, p=Settings.CONNECTIVITY_GRAPH_EDGE_PROPORTION)
         connected = nx.is_connected(connectivity_graph)
 
+    nx.draw(connectivity_graph)
+    plt.show()
+
     return connectivity_graph
 
 
@@ -105,10 +132,25 @@ def generate_matching_graph():
     for _, _, d in matching_graph.edges(data=True):
         d['weight'] = random.randint(*Settings.MATCHING_WEIGHTS_LIMITS)
 
+    global do_once_full_graph
+    if do_once_full_graph:
+        draw_bipartite_graph(matching_graph)
+        do_once_full_graph = False
+
     return matching_graph
 
 
-def is_solved(agents: List[AgentBase], matching_graph: nx.Graph) -> bool:
+def draw_bipartite_graph(matching_graph):
+    l, r = nx.bipartite.sets(matching_graph)
+    pos = {}
+    # Update position for node from each group
+    pos.update((node, (1, index)) for index, node in enumerate(l))
+    pos.update((node, (2, index)) for index, node in enumerate(r))
+    nx.draw(matching_graph, pos=pos)
+    plt.show()
+
+
+def is_solved(agents: List[Agent], matching_graph: nx.Graph) -> bool:
     solutions = [agent.get_solution() for agent in agents]
 
     if not is_valid_matching(matching_graph=matching_graph, solutions=solutions):
@@ -140,3 +182,12 @@ def is_valid_matching(matching_graph: nx.Graph, solutions: List[MatchingSolution
             return False
 
     return True
+
+
+def count_weighted_edges(graph):
+    count = 0
+
+    for edge in graph.edges(data=True):
+        count += (edge[2]['weight'] > 0)
+
+    return count
