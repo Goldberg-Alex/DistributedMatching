@@ -58,8 +58,8 @@ def calculate_discrepancy_score(first_solution: MatchingSolution, second_solutio
     return discrepancy
 
 
-do_once_full_graph = True
-do_once_subgraph = True
+do_once_full_graph = False
+do_once_subgraph = False
 
 
 def generate_matching_sub_graphs(matching_graph) -> List[nx.Graph]:
