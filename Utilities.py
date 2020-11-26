@@ -58,10 +58,6 @@ def calculate_discrepancy_score(first_solution: MatchingSolution, second_solutio
     return discrepancy
 
 
-do_once_full_graph = False
-do_once_subgraph = False
-
-
 def generate_matching_sub_graphs(matching_graph) -> List[nx.Graph]:
     zeroes_subgraph = matching_graph.copy()
 
@@ -97,18 +93,6 @@ def generate_matching_sub_graphs(matching_graph) -> List[nx.Graph]:
                 validated = False
                 break
 
-    global do_once_subgraph
-    if do_once_subgraph:
-        for sub_graph in sub_graphs:
-            subgraph_copy = copy.deepcopy(sub_graph)
-            if do_once_subgraph:
-                for edge in sub_graph.edges():
-                    edge_weight = sub_graph.get_edge_data(*edge)['weight']
-                    if edge_weight < 1:
-                        subgraph_copy.remove_edge(*edge)
-
-                draw_bipartite_graph(subgraph_copy)
-            do_once_subgraph = False
 
     return sub_graphs
 
@@ -121,8 +105,6 @@ def generate_connectivity_graph() -> nx.Graph:
         connectivity_graph = nx.erdos_renyi_graph(n=Settings.NUM_AGENTS, p=Settings.CONNECTIVITY_GRAPH_EDGE_PROPORTION)
         connected = nx.is_connected(connectivity_graph)
 
-    nx.draw(connectivity_graph)
-    plt.show()
 
     return connectivity_graph
 
@@ -132,10 +114,6 @@ def generate_matching_graph():
     for _, _, d in matching_graph.edges(data=True):
         d['weight'] = random.randint(*Settings.MATCHING_WEIGHTS_LIMITS)
 
-    global do_once_full_graph
-    if do_once_full_graph:
-        draw_bipartite_graph(matching_graph)
-        do_once_full_graph = False
 
     return matching_graph
 

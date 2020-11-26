@@ -3,7 +3,7 @@ from typing import Dict, List
 import networkx as nx
 
 import Settings
-from Agent import Agent
+from Agent import Agent, AgentID, Message
 from Utilities import generate_matching_graph, generate_matching_sub_graphs, generate_connectivity_graph, \
     is_solved
 
@@ -78,13 +78,13 @@ def generate_agents(connectivity_graph: nx.Graph, sub_graphs: List[nx.Graph]) ->
 
 if __name__ == '__main__':
     """this is the main function, it runs the challenge over 3 difficulty levels and prints"""
-    if main(Settings.NUM_AGENTS ** 3):
+    if main(Settings.EASY_DIFFICULTY):
         print("**************EASY test - passed")
 
-        if main(Settings.NUM_AGENTS ** 2):
+        if main(Settings.MEDIUM_DIFFICULTY):
             print("**************MEDIUM test - passed")
 
-            if main(Settings.NUM_AGENTS * 2):
+            if main(Settings.HARD_DIFFICULTY):
                 print("**************HARD test - passed! ")
                 print("Congratulations, you passed the tutorial.")
                 print("Now, prove P != NP")
