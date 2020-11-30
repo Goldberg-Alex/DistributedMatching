@@ -1,13 +1,12 @@
+import Settings
 import dataclasses as dc
-import random
-from typing import List, Dict
-
+import math
 import networkx as nx
 import numpy as np
-
-import Settings
+import random
 from AgentBase import AgentBase, Message, AgentID, MatchingSolution
 from Utilities import generate_matching_graph, generate_matching_sub_graphs, calc_optimal_matching_weight
+from typing import List, Dict
 
 
 @dc.dataclass
@@ -40,6 +39,8 @@ class Agent(AgentBase):
         self.step_num = 0
         self._received_new_data = True
         self._calc_possible_recipients()
+        self.prev_msg_budget = 1000000000
+        self.sending_threshold = 100000000
 
     def step(self, message_budget, messages: List[Message]) -> Dict[AgentID, Message]:
         self.step_num += 1
@@ -49,6 +50,7 @@ class Agent(AgentBase):
         out_messages = {}
 
         if self._is_good_enough_for_sending(message_budget):
+            print(f"sending message, budget is {message_budget}, round num {self.step_num}")
             out_messages = {agent_idx: Message(self._matching_subgraph) for agent_idx in self._calc_recipients()}
             self._received_new_data = False
         return out_messages
@@ -64,7 +66,10 @@ class Agent(AgentBase):
 
     def _is_good_enough_for_sending(self, message_budget) -> bool:
         current_matching = calc_optimal_matching_weight(self._matching_subgraph)
-        sending_threshold = self.matching_mean + self.matching_variance * 2 - message_budget - self.step_num
+        # sending_threshold = self.matching_mean + math.sqrt(self.matching_variance) * 2 - message_budget - self.step_num
+        if self.prev_msg_budget > message_budget:
+            self.prev_msg_budget  = message_budget
+
 
         return current_matching > sending_threshold
 
@@ -89,7 +94,7 @@ class Agent(AgentBase):
             print(f"count before = {count_before}, count after = {count_after}")
 
     def get_solution(self) -> MatchingSolution:
-        return self._matching
+        return self._matching if self._matching else nx.algorithms.matching.max_weight_matching(self._matching_subgraph)
 
     def _append_subgraph(self, original_subgraph: nx.Graph, additional_subgraph: nx.Graph) -> nx.Graph:
         for edge in additional_subgraph.edges(data=True):

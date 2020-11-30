@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 import Settings
-from Agent import Agent, MatchingSolution
-
+from AgentBase import MatchingSolution, AgentBase
 """
 a collection of utility methods for working with graphs, 
 you may use these functions freely in the solution
@@ -21,7 +20,7 @@ def calculate_agent_matching_value(matching_solution: MatchingSolution, matching
     return score
 
 
-def calc_matching_score(agents: List[Agent], matching_graph: nx.Graph) -> float:
+def calc_matching_score(agents: List[AgentBase], matching_graph: nx.Graph) -> float:
     matching_score_sum = 0.0
 
     for agent in agents:
@@ -30,7 +29,7 @@ def calc_matching_score(agents: List[Agent], matching_graph: nx.Graph) -> float:
     return average_matching_score
 
 
-def calculate_average_discrepancy(agents: List[Agent]) -> float:
+def calculate_average_discrepancy(agents: List[AgentBase]) -> float:
     discrepancies_sum = 0.0
     agent_pairs_num = 0
 
@@ -128,7 +127,7 @@ def draw_bipartite_graph(matching_graph):
     plt.show()
 
 
-def is_solved(agents: List[Agent], matching_graph: nx.Graph) -> bool:
+def is_solved(agents: List[AgentBase], matching_graph: nx.Graph) -> bool:
     solutions = [agent.get_solution() for agent in agents]
 
     if not is_valid_matching(matching_graph=matching_graph, solutions=solutions):

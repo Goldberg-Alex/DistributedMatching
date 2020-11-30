@@ -3,7 +3,7 @@ from typing import Dict, List
 import networkx as nx
 
 import Settings
-from Agent import Agent, AgentID, Message
+from SmartAgent import Agent, AgentID, Message
 from Utilities import generate_matching_graph, generate_matching_sub_graphs, generate_connectivity_graph, \
     is_solved
 
@@ -62,7 +62,7 @@ def main(message_budget) -> bool:
     for agent in agents:
         agent.step(message_budget=curr_message_budget,
                    messages=prev_round_messages.get(agent.agent_idx, []))
-
+    print (f"finished last iteration, remaining message budget is {curr_message_budget} / {message_budget}")
     # check if the agents managed to solve the problem
     return is_solved(agents=agents, matching_graph=matching_graph)
 
