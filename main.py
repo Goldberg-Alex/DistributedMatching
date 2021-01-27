@@ -1,9 +1,11 @@
-from typing import Dict, List
+import concurrent.futures
+from typing import Dict, List, Tuple
 
 import networkx as nx
 
 import Settings
-from SmartAgent import Agent, AgentID, Message
+from AgentBase import AgentID, Message
+from NormalAgent import Agent
 from Utilities import generate_matching_graph, generate_matching_sub_graphs, generate_connectivity_graph, \
     is_solved
 
@@ -13,7 +15,7 @@ run it.!
 '''
 
 
-def main(message_budget) -> bool:
+def main(message_budget) -> Tuple[bool, int]:
     # generate matching graph with random weights
     matching_graph = generate_matching_graph()
 
@@ -21,6 +23,7 @@ def main(message_budget) -> bool:
     connectivity_graph = generate_connectivity_graph()
     agents = generate_agents(connectivity_graph, sub_graphs)
 
+    budget_used = 0
     curr_message_budget = message_budget
     prev_round_messages: Dict[AgentID, List[Message]] = {}
     agents_done = False
@@ -55,6 +58,7 @@ def main(message_budget) -> bool:
 
                 # each message decreases the budget by 1
                 curr_message_budget -= 1
+                budget_used += 1
 
         prev_round_messages = curr_round_messages
 
@@ -62,9 +66,8 @@ def main(message_budget) -> bool:
     for agent in agents:
         agent.step(message_budget=curr_message_budget,
                    messages=prev_round_messages.get(agent.agent_idx, []))
-    print (f"finished last iteration, remaining message budget is {curr_message_budget} / {message_budget}")
-    # check if the agents managed to solve the problem
-    return is_solved(agents=agents, matching_graph=matching_graph)
+
+    return (is_solved(agents=agents, matching_graph=matching_graph), budget_used)
 
 
 def generate_agents(connectivity_graph: nx.Graph, sub_graphs: List[nx.Graph]) -> List[Agent]:
@@ -77,20 +80,24 @@ def generate_agents(connectivity_graph: nx.Graph, sub_graphs: List[nx.Graph]) ->
 
 
 if __name__ == '__main__':
-    """this is the main function, it runs the challenge over 3 difficulty levels and prints"""
-    if main(Settings.EASY_DIFFICULTY):
-        print("**************EASY test - passed")
+    """This is the main function for the golfing challenge"""
+    budgets_used = []
+    solved_list = []
+    # we can swap out ProcessPoolExecutor for ThreadPoolExecutor
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        for solved, budget in executor.map(main, [Settings.EASY_DIFFICULTY]*Settings.NUM_RUNS):
+            # put results into correct output list
+            solved_list.append(solved)
+            budgets_used.append(budget)
 
-        if main(Settings.MEDIUM_DIFFICULTY):
-            print("**************MEDIUM test - passed")
+    if False in solved_list:
+        print("failed to solve, exiting")
+        exit()
 
-            if main(Settings.HARD_DIFFICULTY):
-                print("**************HARD test - passed! ")
-                print("Congratulations, you passed the tutorial.")
-                print("Now, prove P != NP")
-            else:
-                print("**************HARD test - failed")
-        else:
-            print("**************MEDIUM test - failed")
-    else:
-        print("**************EASY test - failed")
+        budgets_used.append(budget)
+
+    budgets_used.sort()
+    average_budget_used = sum(budgets_used[0:int(Settings.CONSIDERED_RESULTS)]) / Settings.CONSIDERED_RESULTS
+
+    relative_budget = round(average_budget_used / Settings.NUM_AGENTS, 4)
+    print(f"Budget used: {relative_budget} * n ")
