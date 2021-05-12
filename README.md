@@ -1,5 +1,5 @@
 # DistributedMatching
-[problem description](https://colab.research.google.com/drive/1qvDtK4HiHNYRunNWneIrKJECfJaL99qK)
+[Problem description](https://colab.research.google.com/drive/1qvDtK4HiHNYRunNWneIrKJECfJaL99qK)
 
 ## running the code
 The code runs from `main.py`.
